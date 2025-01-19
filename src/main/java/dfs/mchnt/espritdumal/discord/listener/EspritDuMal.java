@@ -215,7 +215,8 @@ public class EspritDuMal extends ListenerAdapter implements ConnectionListener, 
         .onSuccess(list -> list.stream().findFirst().ifPresentOrElse(member ->
           member.modifyNickname(content[1]).queue(v ->
             guild.addRoleToMember(member, certifiedRole).queue(v1 ->
-              event.reply("access granted to : " + content[1]).setEphemeral(true).queue())),
+              event.reply("access granted to : " + content[1]).setEphemeral(true).queue(v2 ->
+                message.delete().queue()))),
           () -> event.reply(content[0] + "?? Who's that ?! ").queue()));
     }
     else event.reply("'-'").setEphemeral(true).queue();
