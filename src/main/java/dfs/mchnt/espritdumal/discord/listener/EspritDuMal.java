@@ -26,13 +26,16 @@ import net.dv8tion.jda.api.entities.channel.unions.AudioChannelUnion;
 import net.dv8tion.jda.api.events.guild.GuildReadyEvent;
 import net.dv8tion.jda.api.events.guild.voice.GuildVoiceUpdateEvent;
 import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent;
+import net.dv8tion.jda.api.events.interaction.component.ButtonInteractionEvent;
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
 import net.dv8tion.jda.api.hooks.ListenerAdapter;
+import net.dv8tion.jda.api.interactions.components.buttons.Button;
 import net.dv8tion.jda.api.requests.GatewayIntent;
 import net.dv8tion.jda.api.requests.RestAction;
 import net.dv8tion.jda.api.utils.ChunkingFilter;
 import net.dv8tion.jda.api.utils.MemberCachePolicy;
 import net.dv8tion.jda.api.utils.cache.CacheFlag;
+import net.dv8tion.jda.api.utils.messages.MessageCreateData;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.ApplicationEventPublisher;
@@ -42,6 +45,7 @@ import org.springframework.stereotype.Service;
 
 import java.util.EnumSet;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
@@ -189,26 +193,22 @@ public class EspritDuMal extends ListenerAdapter implements ConnectionListener, 
       ephemeralReply(message, "Il semblerait que la lecture ne sois pas votre fort. La barbarie est prisée en ces lieux, mais ne vous dispense pas de minimum d'attention! Veuillez saisir uniquement votre nom en jeu.");
       return;
     }
-    accessRepository.findById_Guild_SnowAndId_Member_Ign(guild.getId(), name).ifPresentOrElse(
-      access -> {
-        String existingUser = access.getId().getMember().getSnow();
-        String content;
-        if (access.getAccessType() == Access.AccessType.BANNED) content = Constants.BANNED_REJECT_MESSAGE;
-        else if (existingUser != null && !existingUser.equals(message.getAuthor().getId()))
-          content = Constants.EXISTING_REJECT_MESSAGE;
-        else content = Constants.WELCOME_MESSAGE;
+    guild.getTextChannelsByName("logs", true).get(0).sendMessage(MessageCreateData.fromMessage(message))
+      .setActionRow(
+        Button.success("OK", "✔"),
+        Button.secondary("CUSTOM", "✋"),
+        Button.danger("KO", "❌"))
+      .queue(v -> ephemeralReply(message, Constants.ACCESS_MESSAGE));
+  }
 
-        ephemeralReply(message, content);
-        if (content.startsWith("Bienvenue !"))
-          message.getMember().modifyNickname(name).queue(v -> {
-            memberRepository.findByIgn(name).ifPresent(member -> memberRepository.save(member.setSnow(message.getAuthor().getId())));
-            guild.addRoleToMember(
-              message.getMember(),
-              Optional.ofNullable(access.getDefaultRole()).map(guild::getRoleById).orElse(certifiedRole)
-            ).queue();
-          });
-      },
-      () -> ephemeralReply(message, Constants.UNKNOWN_REJECT_MESSAGE)
-    );
+  @Override
+  public void onButtonInteraction(ButtonInteractionEvent event) {
+    String id = event.getButton().getId();
+    Guild guild = event.getGuild();
+    Message message = event.getMessage();
+    Member member = message.getMember();
+    if("OK".equals(id) && guild != null && member != null) {
+      member.modifyNickname(message.getContentRaw()).queue(v -> guild.addRoleToMember(member, certifiedRole).queue());
+    }
   }
 }

@@ -28,4 +28,8 @@ public class Constants {
     Bienvenue !
     Vous faites désormais partie de la horde des méchants! Faites trembler le monde et répendez la haine !
     """;
+  public static final String ACCESS_MESSAGE = """
+    Bienvenue !
+    Votre identité va à présent être vérifiée par les plus hautes instances du mal. Vos méfaits reconnus, il en sera de même pour vos accès !
+    """;
 }
