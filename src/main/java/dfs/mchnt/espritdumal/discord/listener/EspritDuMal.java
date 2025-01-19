@@ -158,6 +158,7 @@ public class EspritDuMal extends ListenerAdapter implements ConnectionListener, 
           message -> cleanLanding(landing, message.getId()),
           () -> landing.sendMessageEmbeds(new EmbedBuilder().setDescription(Constants.LANDING_TEXT).build())
             .queue(m -> landing.pinMessageById(m.getId()).queue(v -> cleanLanding(landing, m.getId()))))));
+    guild.getTextChannelsByName("test-mechancete",false).get(0).getHistoryFromBeginning(100);
   }
 
   @Override
@@ -180,8 +181,12 @@ public class EspritDuMal extends ListenerAdapter implements ConnectionListener, 
   @Override
   public void onMessageReceived(MessageReceivedEvent event) {
     if (event.getAuthor().isBot()) return;
-    if (event.getMessage().getChannel().getName().equals(Salon.LANDING.getName().toLowerCase()))
-      publisher.publishEvent(new RegisterEvent(this, event.getMessage()));
+    Message message = event.getMessage();
+    if (message.getChannel().getName().equals(Salon.LANDING.getName().toLowerCase()))
+      publisher.publishEvent(new RegisterEvent(this, message));
+    if (message.getChannel().getName().equals("test-mechancete") && (message.getAttachments().isEmpty() || message.getAttachments().stream().noneMatch(Message.Attachment::isImage)))
+       message.delete().queue();
+
   }
 
   @EventListener
