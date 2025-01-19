@@ -193,7 +193,10 @@ public class EspritDuMal extends ListenerAdapter implements ConnectionListener, 
       ephemeralReply(message, "Il semblerait que la lecture ne sois pas votre fort. La barbarie est prisée en ces lieux, mais ne vous dispense pas de minimum d'attention! Veuillez saisir uniquement votre nom en jeu.");
       return;
     }
-    guild.getTextChannelsByName("logs", true).get(0).sendMessage(MessageCreateData.fromMessage(message))
+    guild.getTextChannelsByName("logs", true).get(0).sendMessage("%s -> %s".formatted(
+      message.getMember().getEffectiveName(),
+      name
+      ))
       .setActionRow(
         Button.success("OK", "✔"),
         Button.secondary("CUSTOM", "✋"),
@@ -206,9 +209,15 @@ public class EspritDuMal extends ListenerAdapter implements ConnectionListener, 
     String id = event.getButton().getId();
     Guild guild = event.getGuild();
     Message message = event.getMessage();
-    Member member = message.getMember();
-    if("OK".equals(id) && guild != null && member != null) {
-      member.modifyNickname(message.getContentRaw()).queue(v -> guild.addRoleToMember(member, certifiedRole).queue());
+    String[] content = message.getContentRaw().split(" -> ");
+    if("OK".equals(id) && guild != null) {
+      guild.findMembers(m -> m.getEffectiveName().equals(content[0]))
+        .onSuccess(list -> list.stream().findFirst().ifPresentOrElse(member ->
+          member.modifyNickname(content[1]).queue(v ->
+            guild.addRoleToMember(member, certifiedRole).queue(v1 ->
+              event.reply("access granted to : " + content[1]).setEphemeral(true).queue())),
+          () -> event.reply(content[0] + "?? Who's that ?! ").queue()));
     }
+    else event.reply("'-'").setEphemeral(true).queue();
   }
 }
