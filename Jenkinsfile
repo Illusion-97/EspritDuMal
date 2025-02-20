@@ -36,7 +36,7 @@ pipeline {
                         echo "non trouvé"
                     }
                     sshCommand remote: remote, command: "echo \$DISCORD_TOKEN"
-                    sshCommand remote: remote, command: "docker run --name EspritDuMal -d -e DISCORD_TOKEN=\$EDM_TOKEN -e SPRING_DATASOURCE_URL=\$EDM_SPRING_DATASOURCE_URL -e SPRING_DATASOURCE_USERNAME=\$EDM_SPRING_DATASOURCE_USERNAME -e SPRING_DATASOURCE_PASSWORD=\$EDM_SPRING_DATASOURCE_PASSWORD -p 911:8080 edm:latest EspritDuMal.jar"
+                    sshCommand remote: remote, command: "docker run --name EspritDuMal -d -e DISCORD_TOKEN=\$EDM_TOKEN -e SPRING_DATASOURCE_URL=\$DB_URL -e SPRING_DATASOURCE_USERNAME=\$DB_USERNAME -e SPRING_DATASOURCE_PASSWORD=\$DB_PASSWORD -p 911:8080 edm:latest EspritDuMal.jar"
                 }
             }
         }
